@@ -1,0 +1,136 @@
+# coding=utf-8
+from pykeyboard import PyKeyboard
+from pymouse import PyMouse
+import time
+import pyHook
+import pythoncom
+import xlrd
+import xlwt
+import  pyperclip
+from pynput import mouse,keyboard
+import threading
+import sys
+from openpyxl import Workbook,load_workbook
+
+def copy():
+    k.press_key(k.control_key)
+    k.tap_key("c")#改小写！！！！ 大写的话由于单进程会触发shift键 ctrl键就失效了
+    k.release_key(k.control_key)
+
+def getCopy(maxTime=2):
+    #maxTime = 3  # 3秒复制 调用copy() 不管结果对错
+    while (maxTime > 0):
+        maxTime = maxTime - 0.5
+        time.sleep(0.5)
+        # print('doing')
+        copy()
+
+    result = pyperclip.paste()
+    return result
+
+
+
+def tapkey(key,count=1):
+    for i in range(0,count):
+        k.tap_key(key)
+        time.sleep(0.2)
+def Do():
+    if start:
+        #主代码---------------
+        global scoll_count
+        global saving
+        targetName = ''
+        targetType = getCopy()
+        tapkey(k.right_key, 2)
+        targetValue = getCopy()
+
+        #float_targetValue=str(float(targetValue)/1000)
+        targetType=str(targetType).replace('-0.6/1kV','')
+        targetType=str(targetType).replace('-1kV','')
+        targetType=str(targetType).replace('-1KV','')
+        targetType=str(targetType).replace(' ','$')
+        if(scoll_count%3==0):
+            m.scroll(-1)
+        tapkey(k.down_key)
+        tapkey(k.left_key, 2)
+        saving=True
+        if ('×' in targetType):
+            targetType1 = str(targetType).replace('×', 'x')
+            targetType2 = str(targetType).replace('×', '*')
+            saveToExcel(targetName, targetType1, targetValue)
+            saveToExcel(targetName, targetType2, targetValue)
+            print('第' + str(rowMaxCount-1) + '列： ' + targetType1 + ' ' + targetValue)
+            print('第' + str(rowMaxCount) + '列： ' + targetType2 + ' ' + targetValue)
+
+        # if(True):
+        #
+
+        saveToExcel(targetName, targetType, targetValue)
+
+        print('第'+str(rowMaxCount)+'列： '+targetType+' '+targetValue)
+        scoll_count=scoll_count+1
+        saving=False
+        #print('----SAVED---')
+
+def saveToExcel(name,type,value):
+    #saveworkbook = xlrd.open_workbook(saveExcelUrl)
+    #wb = excel_copy(saveworkbook)  # 利用xlutils.copy下的copy函数复制
+    wb= load_workbook(filename=saveExcelUrl)
+    worksheet=wb.active
+    worksheet=wb['Sheet1']
+    global rowMaxCount
+    #print(rowMaxCount)
+    worksheet.cell(row=rowMaxCount+1,column=1,value=name)
+    worksheet.cell(row=rowMaxCount+1,column=2,value=type)
+    worksheet.cell(row=rowMaxCount+1,column=3,value=value)
+
+    wb.save(saveExcelUrl)
+    rowMaxCount=rowMaxCount+1
+
+
+#我的代码
+def onpressed(Key):
+    while True:
+        #print(Key)
+        if (Key==keyboard.Key.caps_lock):#开始
+            global start
+            start=True
+            print('go')
+        if (Key==keyboard.Key.f3 and not saving):#结束
+            sys.exit()
+
+        #print(Key)
+        return True
+
+
+
+
+def main():
+    while True:
+        #主程序在这
+        Do()
+
+
+if __name__ == '__main__':
+    k = PyKeyboard()
+    m = PyMouse()
+    scoll_count=0
+    start=False
+    saving=False
+    #saveExcelUrl = r"C:\Users\123\Desktop\广联达\安装\save.xlsx"  # to do-------------
+    saveExcelUrl = r"C:\Users\Administrator\Desktop\save.xlsx"  # to do-------------
+    saveworkbook = xlrd.open_workbook(saveExcelUrl)
+    rowMaxCount=saveworkbook.sheets()[0].nrows
+
+
+    threads = []
+    t2 = threading.Thread(target=main, args=())
+    threads.append(t2)
+    for t in threads:
+        t.setDaemon(True)
+        t.start()
+    print('press Capital to start')
+
+    with keyboard.Listener(on_press=onpressed) as listener:
+        listener.join()
+
