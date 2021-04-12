@@ -40,7 +40,7 @@ def Do():
 
         #主代码---------------
         global curCount
-        if(curCount>523):
+        if(curCount>100000):
             start=False
             print('stop')
             return
@@ -55,32 +55,37 @@ def Do():
         tapkey(k.right_key, 1)
 
         targetValue = getCopy()
-
+        if(targetValue==""):
+            targetValue=0
         curCount=curCount+1
-        #float_targetValue=str(float(targetValue)/1000)
-        # targetType=str(targetType).replace('-0.6/1kV','')
-        # targetType=str(targetType).replace('-1kV','')
-        # targetType=str(targetType).replace('-1KV','')
-        # targetType=str(targetType).replace(' ','$')
+        #TODODODOODODODODODODODODODOODODODOODODO
+        float_targetValue=str(targetValue)
+        if(unit=='km'):
+            float_targetValue=str(float(targetValue)/1000)
+        else:
+            float_targetValue=str(targetValue)
+        targetType=str(targetType).replace('-0.6/1kV','')
+        targetType=str(targetType).replace('-1kV','')
+        targetType=str(targetType).replace('-1KV','')
+        targetType=str(targetType).replace(' ','$')#仅电线电缆有$
         if(scoll_count%3==0):
             m.scroll(-1)
         tapkey(k.down_key)
         tapkey(k.left_key, 3)
         saving=True
-        # if ('×' in targetType):
-        #     targetType1 = str(targetType).replace('×', 'x')
-        #     targetType2 = str(targetType).replace('×', '*')
-        #     saveToExcel(targetName, targetType1,unit, targetValue)
-        #     saveToExcel(targetName, targetType2, targetValue)
-        #     print('第' + str(rowMaxCount-1) + '列： ' +targetName+' '+ targetType1 + ' ' + targetValue)
-        #     print('第' + str(rowMaxCount) + '列： ' +targetName+' '+ targetType2 + ' ' + targetValue)
+        if ('×' in targetType):
+            targetType1 = str(targetType).replace('×', 'x')
+            targetType2 = str(targetType).replace('×', '*')
+            saveToExcel(targetName, targetType1,unit, float_targetValue)
+            saveToExcel(targetName, targetType2, unit, float_targetValue)
+            print('第' + str(rowMaxCount-1) + '列： ' +targetName+' '+ targetType1 + ' ' + float_targetValue)
+            print('第' + str(rowMaxCount) + '列： ' +targetName+' '+ targetType2 + ' ' + float_targetValue)
 
-        # if(True):
-        #
 
-        saveToExcel(targetName, targetType, unit,targetValue)
 
-        print('第'+str(rowMaxCount)+'列： '+targetName+' '+targetType+' '+targetValue+' '+unit)
+        saveToExcel(targetName, targetType, unit,float_targetValue)
+
+        print('第'+str(rowMaxCount)+'列： '+targetName+' '+targetType+' '+float_targetValue+' '+unit)
         scoll_count=scoll_count+1
         saving=False
         #print('----SAVED---')
